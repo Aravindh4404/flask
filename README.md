@@ -35,6 +35,23 @@ $ flask run
   * Running on http://127.0.0.1:5000/ (Press CTRL+C to quit)
 ```
 
+## Documentation
+
+The official Pallets documentation lives at [flask.palletsprojects.com](https://flask.palletsprojects.com/).
+
+Structured Markdown docs (Diataxis format) are available in [context/docs/](context/docs/):
+
+| Document | Type | Description |
+|---|---|---|
+| [Getting Started Tutorial](context/docs/tutorial-getting-started.md) | Tutorial | Build a working JSON API from scratch |
+| [Core API Reference](context/docs/reference-core-api.md) | Reference | Flask, Blueprint, proxies, helpers, signals |
+| [Configuration Reference](context/docs/reference-configuration.md) | Reference | Every built-in config key |
+| [Contexts and Proxies](context/docs/explanation-contexts-and-proxies.md) | Explanation | Why `request`, `g`, `current_app` work without passing them around |
+| [App Factory Pattern](context/docs/explanation-app-factory-pattern.md) | Explanation | When and why to create the app inside a function |
+| [How to use Blueprints](context/docs/howto-blueprints.md) | How-to | Splitting a growing app into modules |
+| [How to handle errors](context/docs/howto-error-handling.md) | How-to | Custom 404/500 pages, JSON errors |
+| [How to write tests](context/docs/howto-testing.md) | How-to | pytest fixtures, test client, CLI runner |
+
 ## Donate
 
 The Pallets organization develops and supports Flask and the libraries

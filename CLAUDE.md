@@ -92,6 +92,11 @@ architecture** (how Flask is built), not user-facing usage docs.
 - **LLM Wiki** — 10 compiled articles at
   `C:\Users\aravi\wiki\topics\flask-internals\wiki\` (3 concepts, 4 topics,
   3 references).
+- **SocratiCode** — structural/topology layer over the indexed source
+  (`mcp__plugin_socraticode_socraticode__*` MCP tools). Use it ONLY for
+  call-flow, impact/blast-radius, circular-dependency/module-graph, and
+  visualization questions (see routing table below). Do NOT use it for semantic
+  search or symbol lookup — those stay on GBrain and the LLM Wiki.
 
 ## Routing table — which tool for which question
 
@@ -127,6 +132,37 @@ Use: `gbrain code-def <Symbol> --source gstack-code-flask-7d20071a`
 
 ### Exact code / specific implementation
 Use: `gbrain search "<terms>" --source gstack-code-flask-7d20071a`
+
+### Impact analysis / "what breaks if I change X" / blast radius
+Use: `mcp__plugin_socraticode_socraticode__codebase_impact` (target = symbol).
+**Guardrail 1 — use symbol-mode, not file-mode.** Pass a symbol name
+(e.g. `Flask`), not a file path. File-mode returns 0 impacted files on
+re-export-heavy packages like Flask, because imports flow through
+`src/flask/__init__.py` re-exports and the import-edge graph never maps
+`from flask import X` back to the defining file. Symbol-mode is reliable.
+
+### Call flow / "what does this entry point call into"
+Use: `mcp__plugin_socraticode_socraticode__codebase_flow` (entrypoint = symbol,
+e.g. `wsgi_app` or `full_dispatch_request`). Produces the full multi-hop call
+tree in one call (no GBrain `--dream` step needed).
+
+### Guardrail 2 — flow and impact are orientation aids, not authoritative
+Roughly 54% of call edges are unresolved (Python dynamic dispatch, decorators,
+`getattr`-style indirection), so `codebase_flow` and `codebase_impact` are
+best-effort structural approximations. Use them to orient, then verify any
+critical edge against the actual source before relying on it.
+
+### Circular dependencies / module dependency graph (live)
+Use: `mcp__plugin_socraticode_socraticode__codebase_graph_circular` and
+`mcp__plugin_socraticode_socraticode__codebase_graph_stats`. Note: many
+reported cycles are Python re-export artifacts through `__init__.py`, not real
+defects. (For the human-curated module overview, the wiki
+`module-architecture.md` / `context/docs/knowledge-graph.md` still apply.)
+
+### Visualization / shareable dependency map
+Use: `mcp__plugin_socraticode_socraticode__codebase_graph_visualize`
+(`mode="mermaid"` for inline diagrams, `mode="interactive"` for a browser-based
+explorer with blast-radius highlighting).
 
 ## What NOT to do
 - Do not grep through `src/` for architecture questions — the wiki covers this.

@@ -1,11 +1,49 @@
-## GBrain Configuration (configured by /setup-gbrain)
-- Mode: local-stdio
-- Engine: pglite
-- Config file: ~/.gbrain/config.json (mode 0600)
-- Setup date: 2026-06-09
-- MCP registered: yes (user scope)
-- Artifacts sync: off (re-run /setup-gbrain after `gh auth login` to enable)
-- Current repo policy: read-write
+# Flask Context System — Routing Table
+
+You have four context layers for answering questions about this Flask codebase.
+Use the table below to pick the right tool for each question. ALWAYS use the
+specified tool — do not fall back to grep or manual file reading when a tool
+is listed.
+
+## Question routing — exact mapping
+
+| Question shape | Tool to use |
+|---|---|
+| "Where is symbol X defined?" | `mcp__gbrain__code_def` |
+| "Where is X mentioned / referenced?" | `mcp__gbrain__code_refs` |
+| "How does X work conceptually?" | `mcp__gbrain__search` (returns wiki articles) |
+| "Architecture / lifecycle / mechanism" | `mcp__gbrain__search` |
+| "What calls X?" / "What does X call?" (one hop) | `mcp__gbrain__code_callers` / `code_callees` |
+| **Full call tree from X** | `mcp__plugin_socraticode_socraticode__codebase_flow` |
+| **Blast radius / impact of changing X** | `mcp__plugin_socraticode_socraticode__codebase_impact` (symbol-mode) |
+| **Circular dependencies** | `mcp__plugin_socraticode_socraticode__codebase_graph_circular` |
+| **Dependency graph visualization** | `mcp__plugin_socraticode_socraticode__codebase_graph_visualize` |
+| **Graph statistics** | `mcp__plugin_socraticode_socraticode__codebase_graph_stats` |
+| "What did we discover before?" | `mcp__gbrain__search` (includes transcripts) |
+
+## Hard rules
+
+1. For symbol definitions, ALWAYS call `code_def` first. Do not grep.
+2. For blast radius / impact, ALWAYS use SocratiCode. Manual tracing is not acceptable.
+3. For circular dependencies, ALWAYS use `codebase_graph_circular`. Do not trace imports manually.
+4. For full call trees, ALWAYS use `codebase_flow`. Do not trace by reading files.
+5. For "how does X work" questions, search GBrain first — the wiki articles are indexed there.
+6. SocratiCode `codebase_impact` MUST use symbol-mode (pass `Flask`, not `app.py`).
+
+## Sources and pins
+
+- GBrain source: `default` (pinned via `.gbrain-source`)
+- Wiki articles: indexed inside GBrain (search returns them as `concepts/*`, `topics/*`, `references/*`)
+- SocratiCode project path: `c:\Users\aravi\Desktop\flask`
+
+## Verified anchor facts
+
+- `Flask` class: `src/flask/app.py:109`
+- `Blueprint` class: `src/flask/blueprints.py:18`
+- Request flow: `wsgi_app` (`app.py:1566`) → `full_dispatch_request` (`app.py:992`) → `dispatch_request` (`app.py:966`)
+- `has_request_context`: `src/flask/ctx.py:209`
+- Context globals defined in: `src/flask/globals.py`
+- Context objects managed in: `src/flask/ctx.py`
 
 ## GBrain Search Guidance (configured by /sync-gbrain)
 <!-- gstack-gbrain-search-guidance:start -->
@@ -56,140 +94,3 @@ add --path <dir>` (no `--url`): URL-managed sources can auto-reclone, and the
 sync code walk for them requires an explicit `--allow-reclone` opt-in.
 
 <!-- gstack-gbrain-search-guidance:end -->
-
-## Skill routing
-
-When the user's request matches an available skill, invoke it via the Skill tool. When in doubt, invoke the skill.
-
-Key routing rules:
-- Product ideas/brainstorming → invoke /office-hours
-- Strategy/scope → invoke /plan-ceo-review
-- Architecture → invoke /plan-eng-review
-- Design system/plan review → invoke /design-consultation or /plan-design-review
-- Full review pipeline → invoke /autoplan
-- Bugs/errors → invoke /investigate
-- QA/testing site behavior → invoke /qa or /qa-only
-- Code review/diff check → invoke /review
-- Visual polish → invoke /design-review
-- Ship/deploy/PR → invoke /ship or /land-and-deploy
-- Save progress → invoke /context-save
-- Resume context → invoke /context-restore
-- Author a backlog-ready spec/issue → invoke /spec
-
-# Flask Internals — Context Guide
-
-## What this repo is
-Flask is a Python WSGI web framework. This guide documents its **internal
-architecture** (how Flask is built), not user-facing usage docs.
-
-## Context system layers available
-- **Generated docs** — 12 markdown files in `context/docs/` (Diataxis-structured;
-  note: located under `context/docs/`, not a top-level `docs/`).
-- **GBrain source** — `gstack-code-flask-7d20071a` (pinned via `.gbrain-source`).
-  Indexes the Python source as AST chunks (function/class/method granularity)
-  plus the imported wiki articles. Query with `--source gstack-code-flask-7d20071a`
-  (or rely on the `.gbrain-source` pin on gbrain >= 0.41.38.0).
-- **LLM Wiki** — 10 compiled articles at
-  `C:\Users\aravi\wiki\topics\flask-internals\wiki\` (3 concepts, 4 topics,
-  3 references).
-- **SocratiCode** — structural/topology layer over the indexed source
-  (`mcp__plugin_socraticode_socraticode__*` MCP tools). Use it ONLY for
-  call-flow, impact/blast-radius, circular-dependency/module-graph, and
-  visualization questions (see routing table below). Do NOT use it for semantic
-  search or symbol lookup — those stay on GBrain and the LLM Wiki.
-
-## Routing table — which tool for which question
-
-### Architecture / "how does X work overall"
-Read: `wiki/concepts/request-lifecycle.md`
-Or: `gbrain search "<terms>" --source gstack-code-flask-7d20071a`
-
-### Request lifecycle / WSGI to response flow
-Read: `wiki/concepts/request-lifecycle.md`
-
-### Context system (request, g, session, current_app)
-Read: `wiki/concepts/context-and-proxies.md`
-
-### Blueprints — how they work internally
-Read: `wiki/concepts/blueprint-internals.md`
-
-### How-to questions (factory, errors, testing, blueprints)
-Read: `wiki/topics/` — pick the matching article:
-`app-factory-pattern.md`, `error-handling.md`, `testing-flask-apps.md`,
-`organizing-with-blueprints.md`
-
-### Config keys
-Read: `wiki/references/configuration.md`
-
-### API reference (classes, functions, decorators)
-Read: `wiki/references/core-api.md`
-
-### Module dependency graph
-Read: `wiki/references/module-architecture.md`
-
-### Where a symbol is defined
-Use: `gbrain code-def <Symbol> --source gstack-code-flask-7d20071a`
-
-### Exact code / specific implementation
-Use: `gbrain search "<terms>" --source gstack-code-flask-7d20071a`
-
-### Impact analysis / "what breaks if I change X" / blast radius
-Use: `mcp__plugin_socraticode_socraticode__codebase_impact` (target = symbol).
-**Guardrail 1 — use symbol-mode, not file-mode.** Pass a symbol name
-(e.g. `Flask`), not a file path. File-mode returns 0 impacted files on
-re-export-heavy packages like Flask, because imports flow through
-`src/flask/__init__.py` re-exports and the import-edge graph never maps
-`from flask import X` back to the defining file. Symbol-mode is reliable.
-
-### Call flow / "what does this entry point call into"
-Use: `mcp__plugin_socraticode_socraticode__codebase_flow` (entrypoint = symbol,
-e.g. `wsgi_app` or `full_dispatch_request`). Produces the full multi-hop call
-tree in one call (no GBrain `--dream` step needed).
-
-### Guardrail 2 — flow and impact are orientation aids, not authoritative
-Roughly 54% of call edges are unresolved (Python dynamic dispatch, decorators,
-`getattr`-style indirection), so `codebase_flow` and `codebase_impact` are
-best-effort structural approximations. Use them to orient, then verify any
-critical edge against the actual source before relying on it.
-
-### Circular dependencies / module dependency graph (live)
-Use: `mcp__plugin_socraticode_socraticode__codebase_graph_circular` and
-`mcp__plugin_socraticode_socraticode__codebase_graph_stats`. Note: many
-reported cycles are Python re-export artifacts through `__init__.py`, not real
-defects. (For the human-curated module overview, the wiki
-`module-architecture.md` / `context/docs/knowledge-graph.md` still apply.)
-
-### Visualization / shareable dependency map
-Use: `mcp__plugin_socraticode_socraticode__codebase_graph_visualize`
-(`mode="mermaid"` for inline diagrams, `mode="interactive"` for a browser-based
-explorer with blast-radius highlighting).
-
-## What NOT to do
-- Do not grep through `src/` for architecture questions — the wiki covers this.
-- Do not read all docs — read only the specific one routed above.
-- Do not load `context/docs/knowledge-graph.md` unless asked about module
-  relationships.
-
-## Key facts about Flask internals (verified against source)
-- The `Flask` application class lives in `src/flask/app.py:109` and subclasses
-  `App` (`src/flask/sansio/app.py:59`), which subclasses `Scaffold`
-  (`src/flask/sansio/scaffold.py:52`).
-- **sansio/ pattern**: framework-agnostic, I/O-free base logic
-  (`sansio/app.py`, `sansio/blueprints.py`, `sansio/scaffold.py`) is separated
-  from the WSGI-bound concrete classes in `app.py`/`blueprints.py`. The concrete
-  `Flask`/`Blueprint` inherit the sansio base and add request/response handling.
-- `Blueprint` (`src/flask/blueprints.py:18`) subclasses the sansio `Blueprint`
-  (`src/flask/sansio/blueprints.py:119`); blueprints record deferred setup
-  operations that run when registered on an app.
-- **Request handling flow** (in `src/flask/app.py`): `wsgi_app` (line 1566) →
-  `full_dispatch_request` (line 992) → `dispatch_request` (line 966). The
-  full-dispatch phase fires before-request handlers, dispatches to the view,
-  then finalizes/after-request handlers.
-- The context globals `current_app`, `request`, `session`, and `g` are
-  `LocalProxy` objects defined in `src/flask/globals.py`, backed by the
-  request/app context stacks managed in `src/flask/ctx.py`.
-- `has_request_context()` (`src/flask/ctx.py:209`) reports whether a request
-  context is currently pushed.
-- Core modules: `app.py` (the Flask class), `ctx.py` (context objects),
-  `globals.py` (proxies), `blueprints.py`, `config.py`, `sessions.py`,
-  `wrappers.py` (Request/Response), `helpers.py`, `views.py` (class-based views).

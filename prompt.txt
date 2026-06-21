@@ -1,0 +1,150 @@
+I need detailed, accurate answers to 40 questions about this Flask codebase. 
+Choose whatever approach you think is best — use whatever tools, MCP servers, 
+context layers, agents, or file reads you decide will produce the best answers. 
+You have full access to the repository and the configured context system.
+
+For each answer, include the file path and line number where the information 
+came from.
+
+SECTION A — CODE SYMBOL & PRECISION (Q1-Q13)
+
+Q1.  Where is wsgi_app defined? Walk through every operation it performs 
+     in order from start to finish.
+
+Q2.  Where is full_dispatch_request defined? List every function call 
+     inside it in order.
+
+Q3.  Where is has_request_context defined? What exactly does it check 
+     and what does it return?
+
+Q4.  Where is AppContext defined? What does pushing it do to the 
+     application state?
+
+Q5.  Where is LocalProxy defined (in flask or werkzeug)? What does it 
+     proxy and how does it resolve the underlying object?
+
+Q6.  Where is open_session defined? What does it return and what 
+     happens if it returns None?
+
+Q7.  Where is save_session defined? What arguments does it take and 
+     what does it write?
+
+Q8.  Where is handle_exception defined? What is the full flow inside it?
+
+Q9.  Where is ensure_sync defined? What problem does it solve and what 
+     Python feature does it use?
+
+Q10. Where is make_response defined? What types can it accept as input 
+     and how does it handle each?
+
+Q11. Trace from Flask.__call__ to where the response is finalized. 
+     List every function in the chain with file and line.
+
+Q12. What is the exact chain of functions called when a session is 
+     saved at the end of a request? Trace from save_session being 
+     triggered to the cookie being written.
+
+Q13. Which methods of the Flask class are inherited from App vs added 
+     directly by Flask itself? List both groups.
+
+---
+
+SECTION B — CONCEPTUAL / ARCHITECTURAL (Q14-Q25)
+
+Q14. How does the Flask request lifecycle work from the moment a WSGI 
+     server sends a request to when Flask returns a response? Name every 
+     function in the chain with the file it lives in.
+
+Q15. What is the difference between application context and request 
+     context? When exactly does each get pushed and popped? What happens 
+     if you access request outside a request context?
+
+Q16. How does Flask use LocalProxy and ContextVar to implement 
+     thread-safe globals like request, g, session, and current_app? 
+     Explain the internal mechanism.
+
+Q17. How does blueprint registration work internally? Walk through every 
+     step that happens when you call app.register_blueprint().
+
+Q18. How does Flask's error handling hierarchy work? What is the exact 
+     order Flask checks for exception handlers and what happens if none 
+     match?
+
+Q19. How does Flask handle sessions end to end? Trace from the incoming 
+     cookie to the session object being available in the view, and then 
+     back from the session object to the Set-Cookie header in the 
+     response.
+
+Q20. How does Flask's signal system work? What library does it use, 
+     what signals exist, and at what exact point in the request lifecycle 
+     does each signal fire?
+
+Q21. How does Flask's template context work? What variables are 
+     automatically available in every template and how are they injected?
+
+Q22. How does Flask's configuration loading work? If you call from_object, 
+     from_envvar, and from_pyfile, what is the priority order and how 
+     does Flask merge them?
+
+Q23. What config keys control session cookie behaviour in Flask? List 
+     every key with its type, default value, and what it controls.
+
+Q24. How does Flask's URL routing work internally? How does a URL string 
+     get matched to a view function — what objects and steps are involved?
+
+Q25. How does Flask's test client work? What does it mock and what real 
+     Flask code does it still run?
+
+---
+
+SECTION C — STRUCTURAL ANALYSIS (Q26-Q40)
+
+Q26. What is the blast radius of changing the Flask class in app.py? 
+     List every file affected, how many hops away each is, and what 
+     specifically would break.
+
+Q27. Trace the complete call graph starting from full_dispatch_request. 
+     List every function it calls, what those functions call, and so on 
+     to the deepest level you can trace.
+
+Q28. Does Flask have any circular import dependencies between its own 
+     modules? List every cycle with the exact import path for each.
+
+Q29. What files directly import from globals.py? List them all with 
+     what each imports.
+
+Q30. What functions or methods call AppContext.push() anywhere in the 
+     codebase? List every caller with file and line number.
+
+Q31. What is the blast radius of changing the RequestContext or 
+     AppContext class? What would break and in how many files?
+
+Q32. What calls teardown_appcontext? Trace every caller — what triggers 
+     it and in what order?
+
+Q33. What files would be affected if I changed the Blueprint class? 
+     How deep does the dependency chain go?
+
+Q34. What calls handle_exception? Trace the full error propagation 
+     chain from where an exception is raised to where it is caught.
+
+Q35. What is the full dependency chain of app.py? List every file it 
+     imports directly. How many total unique files are in its blast 
+     radius?
+
+Q36. What functions call url_for internally within Flask itself (not 
+     user code)? List every internal caller.
+
+Q37. If I deleted ctx.py entirely, what would break? List every file 
+     that directly or indirectly depends on it.
+
+Q38. Visualize the module dependency graph for Flask. Which 10 files 
+     are the most connected (highest fan-in or fan-out)?
+
+Q39. Build a 2-hop call graph starting from wsgi_app. How many unique 
+     functions does it reach?
+
+Q40. Find every function in Flask that catches Exception broadly. For 
+     each one, what does it do with the caught exception?
+
+Write everything to a file called WITH-RESULTS.md in the repo root when done.

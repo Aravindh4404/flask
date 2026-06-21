@@ -10,5 +10,6 @@
       "Bash(npm list *)",
       "Bash(npx pyright *)"
     ]
-  }
+  },
+  "enableAllProjectMcpServers": true
 }

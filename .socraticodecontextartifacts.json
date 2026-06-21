@@ -1,0 +1,9 @@
+{
+  "artifacts": [
+    {
+      "name": "llm-wiki",
+      "path": "C:/Users/aravi/wiki/topics/flask-internals/wiki",
+      "description": "Compiled, cross-referenced Flask internals articles synthesized from source via GStack + LLM Wiki. Use to understand how Flask's internals work conceptually."
+    }
+  ]
+}

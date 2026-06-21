@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "plugin_socraticode_socraticode": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "C:/Users/aravi/AppData/Roaming/npm/node_modules/socraticode/dist/index.js"
+      ]
+    },
+    "gbrain": {
+      "type": "stdio",
+      "command": "C:/Users/aravi/.bun/bin/gbrain.exe",
+      "args": [
+        "serve"
+      ],
+      "env": {}
+    }
+  }
+}

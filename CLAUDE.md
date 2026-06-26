@@ -1,11 +1,30 @@
-# Flask Context System — Routing Table
+# Context Management System — Universal Routing
 
-You have four context layers for answering questions about this Flask codebase.
-Use the table below to pick the right tool for each question. ALWAYS use the
-specified tool — do not fall back to grep or manual file reading when a tool
-is listed.
+You have a four-layer context system. Use it for ANY codebase,
+not just Flask. The system works for both answering questions
+AND fixing bugs.
 
-## Question routing — exact mapping
+## What this system is
+
+- GBrain = persistent memory + knowledge + semantic search
+- SocratiCode = structural understanding (what calls what, blast radius)
+- CLAUDE.md = this file, routes you to the right tool
+- GStack/LLM Wiki = compiled knowledge articles
+
+## STEP 1 — When you start any session
+
+Always do these three things first:
+
+1. Check what codebase you are in:
+   `codebase_status` — is it indexed?
+
+2. If not indexed yet:
+   `codebase_index` — index it first, wait for completion
+
+3. Check GBrain has knowledge:
+   `gbrain search "<project name>"` — see what is known
+
+## STEP 2 — Question routing
 
 | Question shape | Tool to use |
 |---|---|
@@ -14,21 +33,123 @@ is listed.
 | "How does X work conceptually?" | `mcp__gbrain__search` (returns wiki articles) |
 | "Architecture / lifecycle / mechanism" | `mcp__gbrain__search` |
 | "What calls X?" / "What does X call?" (one hop) | `mcp__gbrain__code_callers` / `code_callees` |
-| **Full call tree from X** | `mcp__plugin_socraticode_socraticode__codebase_flow` |
-| **Blast radius / impact of changing X** | `mcp__plugin_socraticode_socraticode__codebase_impact` (symbol-mode) |
-| **Circular dependencies** | `mcp__plugin_socraticode_socraticode__codebase_graph_circular` |
-| **Dependency graph visualization** | `mcp__plugin_socraticode_socraticode__codebase_graph_visualize` |
-| **Graph statistics** | `mcp__plugin_socraticode_socraticode__codebase_graph_stats` |
+| Full call tree from X | `mcp__plugin_socraticode_socraticode__codebase_flow` |
+| Blast radius / impact of changing X | `mcp__plugin_socraticode_socraticode__codebase_impact` (symbol-mode) |
+| Circular dependencies | `mcp__plugin_socraticode_socraticode__codebase_graph_circular` |
+| Dependency graph visualization | `mcp__plugin_socraticode_socraticode__codebase_graph_visualize` |
+| Graph statistics | `mcp__plugin_socraticode_socraticode__codebase_graph_stats` |
+| Find relevant code by concept | `mcp__plugin_socraticode_socraticode__codebase_search` |
 | "What did we discover before?" | `mcp__gbrain__search` (includes transcripts) |
 
-## Hard rules
+## STEP 3 — Bug fixing workflow
 
-1. For symbol definitions, ALWAYS call `code_def` first. Do not grep.
-2. For blast radius / impact, ALWAYS use SocratiCode. Manual tracing is not acceptable.
-3. For circular dependencies, ALWAYS use `codebase_graph_circular`. Do not trace imports manually.
-4. For full call trees, ALWAYS use `codebase_flow`. Do not trace by reading files.
-5. For "how does X work" questions, search GBrain first — the wiki articles are indexed there.
-6. SocratiCode `codebase_impact` MUST use symbol-mode (pass `Flask`, not `app.py`).
+When given a bug report, follow these steps IN ORDER.
+Do not skip steps. Do not guess.
+
+### 3a — Understand the bug
+`gbrain think "<bug description>"`
+Get GBrain to synthesize what it knows about this area.
+
+### 3b — Find the relevant code
+`codebase_search "<key terms from bug report>"`
+Find which files are involved.
+
+### 3c — Understand the structure
+`codebase_symbol "<relevant function or class name>"`
+See definition, callers, callees in one call.
+
+### 3d — Check blast radius BEFORE changing anything
+`codebase_impact "<symbol you plan to change>"`
+Know what else might break.
+
+### 3e — Make the fix
+Make the smallest possible change that fixes the bug.
+Do not refactor. Do not change unrelated things.
+
+### 3f — Output as git diff patch
+ALWAYS output the fix in this exact format:
+
+```
+diff --git a/path/to/file.py b/path/to/file.py
+--- a/path/to/file.py
++++ b/path/to/file.py
+@@ line numbers @@
+- old line
++ new line
+```
+
+Never just describe the fix in words. Always show the actual diff.
+
+## STEP 4 — After any fix, verify it
+
+1. `codebase_impact "<changed symbol>"`
+   — confirm nothing unexpected is affected
+
+2. `codebase_graph_circular`
+   — did the fix introduce any circular dependencies?
+
+3. State clearly:
+   - What file you changed
+   - What line you changed
+   - Why that fixes the bug
+   - What might break
+
+## Hard rules — never break these
+
+1. NEVER grep for symbol definitions. Always use `code_def`.
+2. NEVER trace blast radius manually. Always use `codebase_impact`.
+3. NEVER trace call trees by reading files. Always use `codebase_flow`.
+4. NEVER guess at a fix without first running `codebase_search`.
+5. ALWAYS output bug fixes as a git diff patch.
+6. ALWAYS check `codebase_status` before searching a new codebase.
+7. NEVER assume the codebase is the same as a previous session.
+8. For circular dependencies, ALWAYS use `codebase_graph_circular`. Do not trace imports manually.
+9. For "how does X work" questions, search GBrain first — the wiki articles are indexed there.
+
+## Codebase setup — for any new project
+
+When pointed at a new codebase:
+
+1. `codebase_index` — index it
+2. `gbrain sync` — sync code into GBrain
+3. Confirm both are done before answering anything
+
+## Gap analysis rule
+
+After every answer or fix, check:
+- Is there anything GBrain flagged as unknown or stale?
+- Did `codebase_impact` show files you did not check?
+- Are there circular dependencies affecting this area?
+
+If yes — investigate before declaring done.
+
+---
+
+## Current codebase context
+
+SocratiCode project path: auto-detect from current directory
+
+GBrain source: auto-detect from `.gbrain-source` file if present
+
+Anchor facts: NONE hardcoded.
+Use `codebase_status` and `codebase_search` to discover
+facts fresh for each new codebase.
+
+## When starting on a NEW codebase
+
+Run this sequence before anything else:
+
+1. `codebase_status` — confirm it is indexed
+2. `codebase_flow` — discover entry points automatically
+3. `codebase_graph_stats` — understand the structure
+4. `gbrain search "<project name>"` — see existing knowledge
+
+Do NOT assume anything from previous codebases.
+Do NOT use hardcoded file paths or line numbers.
+
+---
+
+# Flask-Specific Context
 
 ## Sources and pins
 
@@ -46,7 +167,6 @@ is listed.
 - Context objects managed in: `src/flask/ctx.py`
 
 ## GBrain Search Guidance (configured by /sync-gbrain)
-<!-- gstack-gbrain-search-guidance:start -->
 
 GBrain is set up and synced on this machine. The agent should prefer gbrain
 over Grep when the question is semantic or when you don't know the exact
@@ -92,5 +212,3 @@ orchestrator refuses destructive source ops when it detects a running autopilot
 to avoid racing it (#1734). Prefer registering user repos with `gbrain sources
 add --path <dir>` (no `--url`): URL-managed sources can auto-reclone, and the
 sync code walk for them requires an explicit `--allow-reclone` opt-in.
-
-<!-- gstack-gbrain-search-guidance:end -->
